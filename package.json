@@ -1,0 +1,20 @@
+{
+  "name": "NexFootballStatistics",
+  "version": "0.0.1",
+  "description": "Consultation de statistiques de joueurs de Football",
+  "main": "main.js",
+  "author": "Ahmed Boussadia",
+  "dependencies": {
+    "bunyan": "^1.5.1",
+    "nedb": "^1.2.0",
+    "x-ray": "^2.0.2"
+  },
+  "devDependencies": {
+    "grunt": "^0.4.5",
+    "grunt-contrib-jshint": "^0.11.3",
+    "grunt-eslint": "^17.3.1",
+    "grunt-jslint": "^1.1.14",
+    "jslint": "^0.9.5",
+    "load-grunt-tasks": "^3.3.0"
+  }
+}
