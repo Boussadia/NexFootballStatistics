@@ -3,8 +3,11 @@ var MPGScraper,
 	bunyan = require('bunyan');
 
 MPGScraper = (function(){
+	// Scrappers init
 	var X = Xray();
 	X.delay(500, 1000);
+
+	// log method init
 	var log = bunyan.createLogger({
 		name: 'scraperlogger',
 		streams: [
@@ -14,6 +17,8 @@ MPGScraper = (function(){
 			}
 		]
 	});
+
+	// Modle configuration
 	var FIXTURES_PAGE = "FIXTURES_PAGE";
 	var FIXTURE_STATISTICS_PAGE = "FIXTURE_STATISTICS_PAGE";
 	var TEAM_PAGE = "TEAM_PAGE";
@@ -22,15 +27,37 @@ MPGScraper = (function(){
 	var BLOG_PLAYER_PAGE = "BLOG_PLAYER_PAGE";
 	var PAGE_TYPE = [FIXTURES_PAGE, FIXTURE_STATISTICS_PAGE, TEAM_PAGE, BLOG_PAGE, BLOG_TEAM_PAGE, BLOG_PLAYER_PAGE];
 
-	return {
-		getResultTableFromFixtureUrl: function(fixturesUrl, successCallback, errorCallback, localX, localLog){
-			if (!localX) log.debug('localXray not provided, using global Xray');
-			if (!localLog) log.debug('localLog not provided, using global log');
-			if (localX) X = localX;
-			if (localLog) log = localLog;
+	var TYPE_MAPPING = {
+		FIXTURES_PAGE: "getResultTableFromFixtureUrl",
+		FIXTURE_STATISTICS_PAGE: "getStatisticsFromFixture",
+		TEAM_PAGE: "getListTeams",
+		BLOG_TEAM_PAGE: "getPlayersFromTeam",
+		BLOG_PLAYER_PAGE: "getPlayerStatistics",
+	}
 
-			log.info("Scraping "+FIXTURES_PAGE+ " URL = " + fixturesUrl);
+	// Module implementation
+	var that = {
 
+		// call functions
+		call: function(page_type, page_url, successCallback, errorCallback, localX, localLog){
+
+			if (page_type in PAGE_TYPE){
+				var method = TYPE_MAPPING[page_type];
+				if (!localX) log.debug('localXray not provided, using global Xray');
+				if (!localLog) log.debug('localLog not provided, using global log');
+				if (localX) X = localX;
+				if (localLog) log = localLog;
+
+				log.info("Scraping "+page_type+ " URL = " + page_url);
+
+				that[method](page_url, successCallback, errorCallback, X, log);
+			}else{
+				log.warn('Unrecognized page_type \''+page_type+'\'.')
+			}
+		},
+
+		// Methods
+		getResultTableFromFixtureUrl: function(fixturesUrl, successCallback, errorCallback, X, log){
 			X(fixturesUrl, "#tabres > table > tbody", {
 				'fixturesResults': X('tr:not(:first-child)',  [{
 				homeTeam:  'td.equipeDom b',
@@ -60,13 +87,6 @@ MPGScraper = (function(){
 		},
 		
 		getStatisticsFromFixture: function(fixtureStatisticsUrl, successCallback, errorCallback, localX, localLog){
-			if (!localX) log.debug('localXray not provided, using global Xray');
-			if (!localLog) log.debug('localLog not provided, using global log');
-			if (localX) X = localX;
-			if (localLog) log = localLog;
-
-			log.info("Scraping "+FIXTURES_PAGE+ " URL = " + fixtureStatisticsUrl);
-
 			X(fixtureStatisticsUrl, "#content > script:nth-child(3)")(function(err, script){
 				log.info(err)
 				if(!err){
@@ -83,13 +103,6 @@ MPGScraper = (function(){
 		},
 
 		getListTeams: function(blogURL, successCallback, errorCallback, localX, localLog){
-			if (!localX) log.debug('localXray not provided, using global Xray');
-			if (!localLog) log.debug('localLog not provided, using global log');
-			if (localX) X = localX;
-			if (localLog) log = localLog;
-
-			log.info("Scraping "+FIXTURES_PAGE+ " URL = " + blogURL);
-
 			X(blogURL, "#menu-item-1247 > ul li", [{
 				teamName: 'a',
 				teaURL: 'a@href'
@@ -104,13 +117,6 @@ MPGScraper = (function(){
 		},
 
 		getPlayersFromTeam: function(teamURL, successCallback, errorCallback, localX, localLog){
-			if (!localX) log.debug('localXray not provided, using global Xray');
-			if (!localLog) log.debug('localLog not provided, using global log');
-			if (localX) X = localX;
-			if (localLog) log = localLog;
-
-			log.info("Scraping "+BLOG_TEAM_PAGE+ " URL = " + teamURL);
-
 			X(teamURL, "#tab1 > div.our-team-sec article figcaption", [{
 				playerURL: 'h2 a@href',
 				playerName: 'h2 a',
@@ -127,13 +133,6 @@ MPGScraper = (function(){
 		},
 
 		getPlayerStatistics: function(playerURL, successCallback, errorCallback, localX, localLog){
-			if (!localX) log.debug('localXray not provided, using global Xray');
-			if (!localLog) log.debug('localLog not provided, using global log');
-			if (localX) X = localX;
-			if (localLog) log = localLog;
-
-			log.info("Scraping "+BLOG_PLAYER_PAGE+ " URL = " + playerURL);
-
 			X(playerURL, "#innermain > div.container > div > div", {
 				playerLastName: 'div.subtitle > h1',
 				playerBirthday: 'div.element_size_100 > div > article > div > div.team-sec > div > div.player-info > ul > li:nth-child(1) > time',
@@ -209,6 +208,8 @@ MPGScraper = (function(){
 			})
 		}
 	}
+
+	return that;
 })();
 
 module.exports = MPGScraper;
