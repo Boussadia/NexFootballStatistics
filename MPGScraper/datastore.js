@@ -22,9 +22,6 @@ MPGStore = (function(){
 		autoload: true
 	});
 	db.scrapeLog.loadDatabase();
-/*	db.league.loadDatabase(function(err){
-		if(err) log.error(err);
-	});*/
 
 	var FIXTURES_RESULTS = "FIXTURES_RESULTS";
 	var TABLES = [FIXTURES_RESULTS];
