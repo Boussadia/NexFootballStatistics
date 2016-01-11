@@ -1,4 +1,5 @@
-var json2csv = require("json2csv");
+var json2csv = require("json2csv"),
+	fs = require('fs');;
 
 /*var NexSportsFrScraper = require('./NexSportsFrScraper');
 
@@ -41,29 +42,79 @@ var MPGScraper = require('./MPGScraper/scraper');
 
 //MPGCrawler.getAllFixturesResults();
 
-MPGScraper.call("FIXTURE_STATISTICS_PAGE", "http://www.monpetitgazon.com/DetailMatchChampionnat2.php?idmatch=805499", function(table){
-	var computedResults = [];
-	for(playerId in table){
-		var localResult = table[playerId];
-		localResult["playerId"] = playerId;
-		computedResults.push(localResult);
-	}
+(function(initIndex, endIndex){
+	var iterGame = function(result, index, results, fixturesStats, finalCallback){
+		var scoreDetailUrl = result.scoreDetailUrl;
+		MPGScraper.call("FIXTURE_STATISTICS_PAGE", scoreDetailUrl, function(table){
+			var computedResults = [];
+			for(playerId in table){
+				var localResult = table[playerId];
+				localResult["playerId"] = playerId;
+				localResult["fixture"] = result.fixture;
+				localResult["homeTeam"] = result.homeTeam;
+				localResult["awayTeam"] = result.awayTeam;
+				computedResults.push(localResult);
+			}
+			fixturesStats = fixturesStats.concat(computedResults);
 
-	var fields = [
-		"playerId",
-		"name",
-		"note"
-
-	]
-
-	json2csv({data: computedResults, fields: fields}, function(err, csv){
-		if(!err){
-			console.log(csv);
-		}else{
+			if(index+1<results.length){
+				iterGame(results[index+1], index +1, results, fixturesStats,finalCallback)
+			}else{
+				if(finalCallback) finalCallback(fixturesStats);
+			}
+		}, function(err){
 			console.log(err)
-		}
-		
-	})
-}, function(err){
-	console.log(err)
-})
+		})
+	}
+	var iterFixtures = function(i, endIndex, globalFixturesStats){
+		var baseUrl = "http://www.monpetitgazon.com/calendrier-resultat-championnat.php?num=";
+		var url = baseUrl + i;
+		MPGScraper.call("FIXTURES_PAGE", url, function(results){
+			results.fixturesResults.forEach(function(result, index, results){
+				result.fixture = i;
+			});
+
+			iterGame(results.fixturesResults[0], 0,results.fixturesResults, globalFixturesStats,function(globalFixturesStats){
+				if(i+1<=endIndex){
+					iterFixtures(i+1,endIndex, globalFixturesStats)
+				}else{
+					var fields = [
+						"playerId",
+						"name",
+						"note",
+						"goals",
+						"goal_assist",
+						"homeTeam",
+						"awayTeam",
+						"fixture"
+					]
+
+					json2csv({data: globalFixturesStats, fields: fields, del: ";"}, function(err, csv){
+						if(!err){
+							fs.writeFile("./target/fixture_"+i+"_"+endIndex+".json", JSON.stringify(globalFixturesStats), function(err) {
+								if(err) {
+									return console.log(err);
+								}
+								console.log("The file was saved!");
+							});
+							fs.writeFile("./target/fixture_"+initIndex+"_"+endIndex+".csv", csv, function(err) {
+								if(err) {
+									return console.log(err);
+								}
+								console.log("The file was saved!");
+							});
+						}else{
+							console.log(err)
+						}
+						
+					})
+				}
+			})
+		}, function(err){
+			console.log(err, i, endIndex);
+		})
+
+	};
+
+	iterFixtures(initIndex, endIndex, []);
+})(1, 20)
