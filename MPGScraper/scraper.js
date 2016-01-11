@@ -18,7 +18,7 @@ MPGScraper = (function(){
 		]
 	});
 
-	// Modle configuration
+	// Module configuration
 	var FIXTURES_PAGE = "FIXTURES_PAGE";
 	var FIXTURE_STATISTICS_PAGE = "FIXTURE_STATISTICS_PAGE";
 	var TEAM_PAGE = "TEAM_PAGE";
@@ -40,8 +40,11 @@ MPGScraper = (function(){
 
 		// call functions
 		call: function(page_type, page_url, successCallback, errorCallback, localX, localLog){
+			var isValidPageType = PAGE_TYPE.some(function(type, index, array){
+				return page_type === type
+			})
 
-			if (page_type in PAGE_TYPE){
+			if (isValidPageType){
 				var method = TYPE_MAPPING[page_type];
 				if (!localX) log.debug('localXray not provided, using global Xray');
 				if (!localLog) log.debug('localLog not provided, using global log');
@@ -85,20 +88,32 @@ MPGScraper = (function(){
 				}
 			});
 		},
-		
+
 		getStatisticsFromFixture: function(fixtureStatisticsUrl, successCallback, errorCallback, localX, localLog){
-			X(fixtureStatisticsUrl, "#content > script:nth-child(3)")(function(err, script){
-				log.info(err)
-				if(!err){
-					var regex = /var stat = (.*);/g;
-					matchs = script.match(regex);
-					if (matchs){
-						var result = JSON.parse(matchs[0].split(" = ")[1].split(";")[0]);
-						if (successCallback) successCallback(result);
+			X(fixtureStatisticsUrl, {
+				script: "#content > script:nth-child(3)",
+				players: X('#content .joueur', [{
+						playerId:"@id", 
+						note: ".note p"
+					}]),
+				})(function(err, statistics){
+					log.info(err);
+					var script = statistics.script;
+					if(!err){
+						var regex = /var stat = (.*);/g;
+						matchs = script.match(regex);
+						if (matchs){
+							var result = JSON.parse(matchs[0].split(" = ")[1].split(";")[0]);
+							for(index in statistics.players){
+								var playerId = statistics.players[index].playerId;
+								var note = statistics.players[index].note;
+								result[playerId].note = note;
+							}
+							if (successCallback) successCallback(result);
+						}
+					}else{
+						if(errorCallback) errorCallback(err);
 					}
-				}else{
-					if(errorCallback) errorCallback(err);
-				}
 			});
 		},
 
