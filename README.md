@@ -9,7 +9,7 @@ npm install
 ```
 ##Utilisation des scripts
 ```
-node scripts/csvcraper.js fixtures_stats --start <fixtureStart> --end <fixtureEnd> | bunyan
+node scripts/csvscraper.js fixtures_stats --start <fixtureStart> --end <fixtureEnd> | bunyan
 ```
 
 Ce script va récupérer toutes les statistiques de tous les joueurs qui ont joués entre les journée fixtureStart et fixtureEnd.
