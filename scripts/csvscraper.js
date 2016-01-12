@@ -65,7 +65,7 @@ var fixtuxeStatistcisRetrieval = function(initIndex, endIndex){
 
 					json2csv({data: globalFixturesStats, fields: fields, del: ";"}, function(err, csv){
 						if(!err){
-							fs.writeFile("../target/fixture_"+initIndex+"_"+endIndex+".csv", csv, function(err) {
+							fs.writeFile(__dirname+"/../target/fixture_"+initIndex+"_"+endIndex+".csv", csv, function(err) {
 								if(err) {
 									return console.log(err);
 								}
