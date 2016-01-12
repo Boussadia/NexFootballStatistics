@@ -19,6 +19,7 @@ Le fichier csv généré contient les informations suivants:
  - collonnes :
   - playerId: entier - identifiant unique du joueur,
   - name: string - nom de famille du joueur,
+  - note: entier - note MPG du joueur,
   - goals: entier - nombre de buts dans le match,
   - goal_assist: entier - nombre de passes décisives dans le match,
   - is_home: 0 ou 1, 1 indique que le joueur jouait à domicile,
