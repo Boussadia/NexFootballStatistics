@@ -6,6 +6,7 @@
   "author": "Ahmed Boussadia",
   "dependencies": {
     "bunyan": "^1.5.1",
+    "commander": "^2.9.0",
     "json2csv": "^3.0.2",
     "nedb": "^1.2.0",
     "x-ray": "^2.0.2"
