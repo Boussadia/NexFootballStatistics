@@ -92,14 +92,26 @@ MPGScraper = (function(){
 		getStatisticsFromFixture: function(fixtureStatisticsUrl, successCallback, errorCallback, localX, localLog){
 			X(fixtureStatisticsUrl, {
 				script: "#content > script:nth-child(3)",
-				players: X('#content .joueur', [{
+				homePlayers: X('#content .joueur.home', [{
+						playerId:"@id", 
+						note: ".note p"
+					}]),
+				awayPlayers: X('#content .joueur.away', [{
 						playerId:"@id", 
 						note: ".note p"
 					}]),
 				})(function(err, statistics){
-					log.info(err);
-					var script = statistics.script;
 					if(!err){
+						var script = statistics.script;
+						for(var i = 0; i<statistics.homePlayers.length; i++){
+							statistics.homePlayers[i].is_home = "1";
+
+						}
+						for(var i = 0; i<statistics.awayPlayers.length; i++){
+							statistics.awayPlayers[i].is_home = "0";
+						}
+						statistics.players = statistics.awayPlayers.concat(statistics.homePlayers);
+						
 						var regex = /var stat = (.*);/g;
 						matchs = script.match(regex);
 						if (matchs){
@@ -107,7 +119,9 @@ MPGScraper = (function(){
 							for(index in statistics.players){
 								var playerId = statistics.players[index].playerId;
 								var note = statistics.players[index].note;
+								var is_home = statistics.players[index].is_home;
 								result[playerId].note = note;
+								result[playerId].is_home = is_home;
 							}
 							if (successCallback) successCallback(result);
 						}
