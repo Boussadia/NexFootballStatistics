@@ -5,6 +5,7 @@ Nodejs
 
 ##Installation
 ```
+npm install bunyan -g
 npm install
 ```
 ##Utilisation des scripts
