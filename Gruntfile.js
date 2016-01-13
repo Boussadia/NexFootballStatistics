@@ -5,10 +5,10 @@ module.exports = function(grunt){
 
 	grunt.initConfig({
 		eslint: {
-			target: ['NexSportsFrScraper.js']
+			target: ['NexSportsFrScraper.js', 'MPGScraper/**/*.js', 'scripts/**/*.js']
 		},
 		jshint: {
-			all: ['*.js']
+			all: ['MPGScraper/**/*.js', 'scripts/**/*.js']
 		},
 	});
 	 

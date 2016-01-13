@@ -1,7 +1,7 @@
 #! /usr/bin/env node
 
 var json2csv = require("json2csv"),
-	MPGScraper = require('../MPGScraper/scraper');
+	MPGScraper = require('../MPGScraper/scraper'),
 	bunyan = require('bunyan'),
 	fs = require('fs'),
 	program = require('commander');
@@ -12,33 +12,33 @@ var fixtuxeStatistcisRetrieval = function(initIndex, endIndex){
 		if (scoreDetailUrl){
 			MPGScraper.call("FIXTURE_STATISTICS_PAGE", scoreDetailUrl, function(table){
 				var computedResults = [];
-				for(playerId in table){
+				for(var playerId in table){
 					var localResult = table[playerId];
-					localResult["playerId"] = playerId;
-					localResult["fixture"] = result.fixture;
-					localResult["homeTeam"] = result.homeTeam;
-					localResult["awayTeam"] = result.awayTeam;
+					localResult.playerId = playerId;
+					localResult.fixture = result.fixture;
+					localResult.homeTeam = result.homeTeam;
+					localResult.awayTeam = result.awayTeam;
 					computedResults.push(localResult);
 				}
 				fixturesStats = fixturesStats.concat(computedResults);
 
 				if(index+1<results.length){
-					iterGame(results[index+1], index +1, results, fixturesStats,finalCallback)
+					iterGame(results[index+1], index +1, results, fixturesStats,finalCallback);
 				}else{
 					if(finalCallback) finalCallback(fixturesStats);
 				}
 			}, function(err){
 				console.log(err);
-			})
+			});
 		}else{
 			if(index+1<results.length){
-				iterGame(results[index+1], index +1, results, fixturesStats,finalCallback)
+				iterGame(results[index+1], index +1, results, fixturesStats,finalCallback);
 			}else{
 				if(finalCallback) finalCallback(fixturesStats);
 			}
 		}
 		
-	}
+	};
 	var iterFixtures = function(i, endIndex, globalFixturesStats){
 		var baseUrl = "http://www.monpetitgazon.com/calendrier-resultat-championnat.php?num=";
 		var url = baseUrl + i;
@@ -49,7 +49,7 @@ var fixtuxeStatistcisRetrieval = function(initIndex, endIndex){
 
 			iterGame(results.fixturesResults[0], 0,results.fixturesResults, globalFixturesStats,function(globalFixturesStats){
 				if(i+1<=endIndex){
-					iterFixtures(i+1,endIndex, globalFixturesStats)
+					iterFixtures(i+1,endIndex, globalFixturesStats);
 				}else{
 					var fields = [
 						"playerId",
@@ -61,7 +61,7 @@ var fixtuxeStatistcisRetrieval = function(initIndex, endIndex){
 						"homeTeam",
 						"awayTeam",
 						"fixture"
-					]
+					];
 
 					json2csv({data: globalFixturesStats, fields: fields, del: ";"}, function(err, csv){
 						if(!err){
@@ -72,15 +72,15 @@ var fixtuxeStatistcisRetrieval = function(initIndex, endIndex){
 								console.log("The file was saved!");
 							});
 						}else{
-							console.log(err)
+							console.log(err);
 						}
 						
-					})
+					});
 				}
-			})
+			});
 		}, function(err){
 			console.log(err, i, endIndex);
-		})
+		});
 
 	};
 

@@ -70,7 +70,7 @@ MPGStore = (function(){
 				}else{
 					log.info("Skipping "+element.homeTeam+" vs "+element.awayTeam+" fixtureDay "+i+". Reason : matched not played yet");
 				}
-			})
+			});
 			
 		}
 	};

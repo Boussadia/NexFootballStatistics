@@ -33,7 +33,7 @@ MPGScraper = (function(){
 		TEAM_PAGE: "getListTeams",
 		BLOG_TEAM_PAGE: "getPlayersFromTeam",
 		BLOG_PLAYER_PAGE: "getPlayerStatistics",
-	}
+	};
 
 	// Module implementation
 	var that = {
@@ -41,8 +41,8 @@ MPGScraper = (function(){
 		// call functions
 		call: function(page_type, page_url, successCallback, errorCallback, localX, localLog){
 			var isValidPageType = PAGE_TYPE.some(function(type, index, array){
-				return page_type === type
-			})
+				return page_type === type;
+			});
 
 			if (isValidPageType){
 				var method = TYPE_MAPPING[page_type];
@@ -55,7 +55,7 @@ MPGScraper = (function(){
 
 				that[method](page_url, successCallback, errorCallback, X, log);
 			}else{
-				log.warn('Unrecognized page_type \''+page_type+'\'.')
+				log.warn('Unrecognized page_type \''+page_type+'\'.');
 			}
 		},
 
@@ -80,7 +80,7 @@ MPGScraper = (function(){
 						}
 						delete fixtureResult.score;
 						
-					})
+					});
 					if (successCallback) successCallback(results);
 					
 				}else{
@@ -107,8 +107,8 @@ MPGScraper = (function(){
 							statistics.homePlayers[i].is_home = "1";
 
 						}
-						for(var i = 0; i<statistics.awayPlayers.length; i++){
-							statistics.awayPlayers[i].is_home = "0";
+						for(var j = 0; j<statistics.awayPlayers.length; j++){
+							statistics.awayPlayers[j].is_home = "0";
 						}
 						statistics.players = statistics.awayPlayers.concat(statistics.homePlayers);
 						
@@ -116,7 +116,7 @@ MPGScraper = (function(){
 						matchs = script.match(regex);
 						if (matchs){
 							var result = JSON.parse(matchs[0].split(" = ")[1].split(";")[0]);
-							for(index in statistics.players){
+							for(var index in statistics.players){
 								var playerId = statistics.players[index].playerId;
 								var note = statistics.players[index].note;
 								var is_home = statistics.players[index].is_home;
@@ -141,7 +141,7 @@ MPGScraper = (function(){
 				}else{
 					if(errorCallback) errorCallback(err);
 				}
-			})
+			});
 
 		},
 
@@ -153,11 +153,11 @@ MPGScraper = (function(){
 			}])(function(err, players){
 				if(!err){
 					if (successCallback) successCallback(players);		
-					log.info(players)			
+					log.info(players);
 				}else{
 					if(errorCallback) errorCallback(err);
 				}
-			})
+			});
 
 		},
 
@@ -185,7 +185,7 @@ MPGScraper = (function(){
 						player.playerCountry = player.playerCountry.split("Pays")[1];
 						player.playerCountry = player.playerCountry.split(" ").filter(function(element){
 							return element !== "";
-						}).join()
+						}).join();
 					} 
 
 					[{
@@ -234,9 +234,9 @@ MPGScraper = (function(){
 				}else{
 					if(errorCallback) errorCallback(err);
 				}
-			})
+			});
 		}
-	}
+	};
 
 	return that;
 })();
