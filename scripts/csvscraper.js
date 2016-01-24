@@ -6,7 +6,7 @@ var json2csv = require("json2csv"),
 	fs = require('fs'),
 	program = require('commander');
 
-var fixtuxeStatistcisRetrieval = function(initIndex, endIndex){
+var fixtuxeStatistcisRetrieval = function(initIndex, endIndex, format){
 	var iterGame = function(result, index, results, fixturesStats, finalCallback){
 		var scoreDetailUrl = result.scoreDetailUrl;
 		if (scoreDetailUrl){
@@ -51,31 +51,40 @@ var fixtuxeStatistcisRetrieval = function(initIndex, endIndex){
 				if(i+1<=endIndex){
 					iterFixtures(i+1,endIndex, globalFixturesStats);
 				}else{
-					var fields = [
-						"playerId",
-						"name",
-						"note",
-						"goals",
-						"goal_assist",
-						"is_home",
-						"homeTeam",
-						"awayTeam",
-						"fixture"
-					];
+					if (format === "csv"){
+						var fields = [
+							"playerId",
+							"name",
+							"note",
+							"goals",
+							"goal_assist",
+							"is_home",
+							"homeTeam",
+							"awayTeam",
+							"fixture"
+						];
 
-					json2csv({data: globalFixturesStats, fields: fields, del: ";"}, function(err, csv){
-						if(!err){
-							fs.writeFile(__dirname+"/../target/fixture_"+initIndex+"_"+endIndex+".csv", csv, function(err) {
-								if(err) {
-									return console.log(err);
-								}
-								console.log("The file was saved!");
-							});
-						}else{
-							console.log(err);
-						}
-						
-					});
+						json2csv({data: globalFixturesStats, fields: fields, del: ";"}, function(err, csv){
+							if(!err){
+								fs.writeFile(__dirname+"/../target/fixture_"+initIndex+"_"+endIndex+".csv", csv, function(err) {
+									if(err) {
+										return console.log(err);
+									}
+									console.log("The file was saved!");
+								});
+							}else{
+								console.log(err);
+							}
+							
+						});
+					}else{
+						fs.writeFile(__dirname+"/../target/fixture_"+initIndex+"_"+endIndex+".json", JSON.stringify(globalFixturesStats), function(err) {
+							if(err) {
+								return console.log(err);
+							}
+							console.log("The file was saved!");
+						});
+					}
 				}
 			});
 		}, function(err){
@@ -92,14 +101,16 @@ program
 	.arguments('action')
 	.option('-s, --start <startIndex>', 'Première journée à récupérer')
 	.option('-e, --end <endIndex>', 'Dernière journée à récupérer')
-	.option('-f, --file <fileoutput>', 'Chemin du fichier à savegarder')
+	.option('-f, --format <formatoutput>', 'format du fichier de sortit, json ou csv')
+	.option('-o, --output <fileoutput>', 'Chemin du fichier à savegarder')
 	.action(function(action){
 		var FIXTURE_STATISTICS_PAGE = "fixtures_stats";
 		var ACTION_LIST = ["FIXTURE_STATISTICS_PAGE"];
 		if (action === FIXTURE_STATISTICS_PAGE){
 			var startIndex = parseInt(program.start);
 			var endIndex = parseInt(program.end);
-			fixtuxeStatistcisRetrieval(startIndex, endIndex);
+			var format = ( program.format === "json") ? "json" : "csv";
+			fixtuxeStatistcisRetrieval(startIndex, endIndex, format);
 		}
 	})
 	.parse(process.argv);
