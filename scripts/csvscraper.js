@@ -224,6 +224,7 @@ var SCRIPTS = (function(json2csv, MPGScraper, bunyan, fs){
 
 			var iterTeams = function(team, index, teams, endCallback){
 				var teamUrl = team.teaURL;
+				var teamName = team.teamName;
 				teamPlayersStats(teamUrl, function(players){
 					iterPlayer(players[0], 0, players, function(){
 						if(index+1>=teams.length){
@@ -239,8 +240,9 @@ var SCRIPTS = (function(json2csv, MPGScraper, bunyan, fs){
 
 			var iterPlayer = function(player, index, players, endCallback){
 				var playerURL = player.playerURL;
+				var playerPosition = player.playerPosition;
 				playerStats(playerURL, function(player){
-					player.position = players.playerPosition;
+					player.position = playerPosition;
 					playersResult.push(player);
 					if(index+1>=players.length){
 						if (endCallback) endCallback();
