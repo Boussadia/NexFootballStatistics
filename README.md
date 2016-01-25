@@ -10,13 +10,14 @@ npm install
 ```
 ##Utilisation des scripts
 ```
-node scripts/csvscraper.js fixtures_stats --start <fixtureStart> --end <fixtureEnd> | bunyan
+node scripts/csvscraper.js fixtures_stats --start <fixtureStart> --end <fixtureEnd> --format <outputFormat> | bunyan
 ```
 
 Ce script va récupérer toutes les statistiques de tous les joueurs qui ont joués entre les journée fixtureStart et fixtureEnd.
+Il est possible de spécifier le format du fichier : soit "json" soit "csv" grâce à outputFormat. La valeur par défaut est "csv"
 Le fichier enregistré est un fichier csv. Pour le moment, le dossier d'enregistrement est /target.
 Le fichier csv généré contient les informations suivants:
- - nom fichier : fixture_\<fixtureStart\>_\<fixtureEnd\>.csv
+ - nom fichier : fixture_\<fixtureStart\>_\<fixtureEnd\>.csv ou fixture_\<fixtureStart\>_\<fixtureEnd\>.json
  - collonnes :
   - playerId: entier - identifiant unique du joueur,
   - name: string - nom de famille du joueur,

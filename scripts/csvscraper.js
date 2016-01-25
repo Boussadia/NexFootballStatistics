@@ -6,9 +6,8 @@ var json2csv = require("json2csv"),
 	fs = require('fs'),
 	program = require('commander');
 
-
 var SCRIPTS = (function(json2csv, MPGScraper, bunyan, fs){
-	var fixtuxeStatistcisRetrieval = function(initIndex, endIndex){
+	var fixtuxeStatistcisRetrieval = function(initIndex, endIndex, format){
 		var iterGame = function(result, index, results, fixturesStats, finalCallback){
 			var scoreDetailUrl = result.scoreDetailUrl;
 			if (scoreDetailUrl){
@@ -30,6 +29,11 @@ var SCRIPTS = (function(json2csv, MPGScraper, bunyan, fs){
 						if(finalCallback) finalCallback(fixturesStats);
 					}
 				}, function(err){
+					if(index+1<results.length){
+						iterGame(results[index+1], index +1, results, fixturesStats,finalCallback);
+					}else{
+						if(finalCallback) finalCallback(fixturesStats);
+					}
 					console.log(err);
 				});
 			}else{
@@ -53,9 +57,22 @@ var SCRIPTS = (function(json2csv, MPGScraper, bunyan, fs){
 					if(i+1<=endIndex){
 						iterFixtures(i+1,endIndex, globalFixturesStats);
 					}else{
+						
 						var fields = [
+							"playerId",
 							"name",
 							"note",
+							"goals",
+							"goal_assist",
+							"is_home",
+							"homeTeam",
+							"awayTeam",
+							"fixture"
+						];
+						var all_fields = [
+							"playerId",
+							"note",
+							"name",
 							"is_home",
 							"homeTeam",
 							"awayTeam",
@@ -110,6 +127,7 @@ var SCRIPTS = (function(json2csv, MPGScraper, bunyan, fs){
 							"error_lead_to_goal",
 							"error_lead_to_shot",
 							"bad_contest",
+							"bad_tackle",
 							"fouls",
 							"yellow_card",
 							"red_card",
@@ -138,23 +156,39 @@ var SCRIPTS = (function(json2csv, MPGScraper, bunyan, fs){
 							"touches_ball_bonus",
 							"ball_recovery",
 							"accurate_pass_percentage",
-							"large_defeat"
+							"large_defeat"];
 
-						];
-
-						json2csv({data: globalFixturesStats, fields: fields, del: ";"}, function(err, csv){
-							if(!err){
-								fs.writeFile(__dirname+"/../target/fixture_"+initIndex+"_"+endIndex+".csv", csv, function(err) {
-									if(err) {
-										return console.log(err);
-									}
-									console.log("The file was saved!");
+							var filterdGlobalFixturesStats = [];
+							globalFixturesStats.forEach(function(element, index, array){
+								var filterdElement = {};
+								all_fields.forEach(function(field, i, array){
+									filterdElement[field] = element[field];
 								});
-							}else{
-								console.log(err);
-							}
-							
-						});
+								filterdGlobalFixturesStats.push(filterdElement);
+							});
+
+						if (format === "csv"){
+							json2csv({data: globalFixturesStats, fields: fields, del: ";"}, function(err, csv){
+								if(!err){
+									fs.writeFile(__dirname+"/../target/fixture_"+initIndex+"_"+endIndex+".csv", csv, function(err) {
+										if(err) {
+											return console.log(err);
+										}
+										console.log("The file was saved!");
+									});
+								}else{
+									console.log(err);
+								}
+								
+							});
+						}else{
+							fs.writeFile(__dirname+"/../target/fixture_"+initIndex+"_"+endIndex+".json", JSON.stringify(filterdGlobalFixturesStats), function(err) {
+								if(err) {
+									return console.log(err);
+								}
+								console.log("The file was saved!");
+							});
+						}
 					}
 				});
 			}, function(err){
@@ -192,8 +226,6 @@ var SCRIPTS = (function(json2csv, MPGScraper, bunyan, fs){
 				var teamUrl = team.teaURL;
 				teamPlayersStats(teamUrl, function(players){
 					iterPlayer(players[0], 0, players, function(){
-						console.log("HAHAHAHAHAHAHAHA");
-						console.log(index, teams.length)
 						if(index+1>=teams.length){
 							if (endCallback) endCallback();
 						}else{
@@ -202,7 +234,7 @@ var SCRIPTS = (function(json2csv, MPGScraper, bunyan, fs){
 					});
 				}, function(err){
 					if(errorCallback) errorCallback(err);
-				})
+				});
 			};
 
 			var iterPlayer = function(player, index, players, endCallback){
@@ -222,11 +254,11 @@ var SCRIPTS = (function(json2csv, MPGScraper, bunyan, fs){
 					}else{
 						iterPlayer(players[index+1], index+1, players, endCallback);
 					}
-				})
-			}
+				});
+			};
 
 			iterTeams(teams[0], 0, teams, function(){
-				fs.writeFile(__dirname+"/../target/stats.json", JSON.stringify(playerStats), function(err) {
+				fs.writeFile(__dirname+"/../target/stats.json", JSON.stringify(playersResult), function(err) {
 					if(err) {
 						return console.log(err);
 					}
@@ -237,16 +269,15 @@ var SCRIPTS = (function(json2csv, MPGScraper, bunyan, fs){
 		}, function(err){
 			if(errorCallback) errorCallback(err);
 		});	
-	}
-
+	};
 
 	return{
 		fixtuxeStatistcisRetrieval: fixtuxeStatistcisRetrieval,
 		playersStats: playersStats
-	}
+	};
 
 
-})(json2csv, MPGScraper, bunyan, fs)
+})(json2csv, MPGScraper, bunyan, fs);
 
 
 
@@ -254,7 +285,8 @@ program
 	.arguments('action')
 	.option('-s, --start <startIndex>', 'Première journée à récupérer')
 	.option('-e, --end <endIndex>', 'Dernière journée à récupérer')
-	.option('-f, --file <fileoutput>', 'Chemin du fichier à savegarder')
+	.option('-f, --format <formatoutput>', 'format du fichier de sortit, json ou csv')
+	.option('-o, --output <fileoutput>', 'Chemin du fichier à savegarder')
 	.action(function(action){
 		var FIXTURE_STATISTICS_PAGE = "fixtures_stats";
 		var PLAYERS_STATISTICS = "players_stats";
@@ -262,14 +294,15 @@ program
 		if (action === FIXTURE_STATISTICS_PAGE){
 			var startIndex = parseInt(program.start);
 			var endIndex = parseInt(program.end);
-			SCRIPTS.fixtuxeStatistcisRetrieval(startIndex, endIndex);
+			var format = ( program.format === "json") ? "json" : "csv";
+			SCRIPTS.fixtuxeStatistcisRetrieval(startIndex, endIndex, format);
 		}else if(action === PLAYERS_STATISTICS){
 			SCRIPTS.playersStats(function(players){
 				console.log("---------------------------------");
 				console.log(players);
 			}, function(err){
 				console.log(err);
-			})
+			});
 		}
 	})
 	.parse(process.argv);
