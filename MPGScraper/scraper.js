@@ -12,7 +12,7 @@ MPGScraper = (function(){
 		name: 'scraperlogger',
 		streams: [
 			{
-				level: 'trace',
+				level: 'info',
 				stream: process.stdout
 			}
 		]
@@ -230,7 +230,7 @@ MPGScraper = (function(){
 
 
 					log.info(player);
-					if (successCallback) successCallback(players);					
+					if (successCallback) successCallback(player);					
 				}else{
 					if(errorCallback) errorCallback(err);
 				}

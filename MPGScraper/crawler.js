@@ -8,7 +8,7 @@ MPGCrawler = (function(MPGScraper){
 		name: 'crawlerlogger',
 		streams: [
 			{
-				level: 'trace',
+				level: 'info',
 				stream: process.stdout
 			}
 		]

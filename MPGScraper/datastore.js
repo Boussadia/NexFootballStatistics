@@ -7,7 +7,7 @@ MPGStore = (function(){
 		name: 'storeLogger',
 		streams: [
 			{
-				level: 'trace',
+				level: 'info',
 				stream: process.stdout
 			}
 		]
