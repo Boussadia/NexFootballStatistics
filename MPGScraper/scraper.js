@@ -152,8 +152,19 @@ MPGScraper = (function(){
 				playerPosition: 'h6 a'
 			}])(function(err, players){
 				if(!err){
-					if (successCallback) successCallback(players);		
+					// Extracting playerId from URL
+					players.forEach(function(player, index, players){
+						var playerId = -1;
+						if (player.playerURL){
+							var url = player.playerURL;
+							var url_length = url.split('-').length;
+							var playerId = parseInt(url.split('-')[url_length-1].split("/")[0]);
+						}
+						player.playerId = playerId;
+					})
+					log.info("Retrieved "+players.length+" players :");
 					log.info(players);
+					if (successCallback) successCallback(players);		
 				}else{
 					if(errorCallback) errorCallback(err);
 				}
